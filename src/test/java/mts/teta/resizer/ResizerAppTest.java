@@ -2,15 +2,20 @@ package mts.teta.resizer;
 
 import mts.teta.resizer.exceptions.BadAttributesException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ResizerAppTest {
 
@@ -48,10 +53,11 @@ class ResizerAppTest {
         app.setResizeWidth(reducedPreviewWidth);
         app.setResizeHeight(reducedPreviewHeight);
         app.setQuality(100);
-        app.call();
+        Integer exitCode = app.call();
 
         BufferedImage reducedPreview = ImageIO.read(new File(absolutePathOutput));
 
+        assertEquals(0, exitCode);
         assertEquals(reducedPreview.getWidth(), reducedPreviewWidth);
         assertEquals(reducedPreview.getHeight(), reducedPreviewHeight);
     }
@@ -75,10 +81,11 @@ class ResizerAppTest {
         app.setResizeWidth(reducedPreviewWidth);
         app.setResizeHeight(reducedPreviewHeight);
         app.setQuality(100);
-        app.call();
+        Integer exitCode = app.call();
 
         BufferedImage reducedPreview = ImageIO.read(new File(absolutePathOutput));
 
+        assertEquals(0, exitCode);
         assertEquals(reducedPreview.getWidth(), reducedPreviewWidth);
         assertEquals(reducedPreview.getHeight(), reducedPreviewHeight);
     }
@@ -189,8 +196,9 @@ class ResizerAppTest {
         assertEquals(IIOException.class, generatedException.getClass());
     }
 
-    @Test
-    public void testBadAttributes() throws Exception {
+    @ParameterizedTest(name = "quality is -> {0}")
+    @ValueSource(ints = {0, 101})
+    public void testBadQualityAttributes(int quality) throws Exception {
         URL res = getClass().getClassLoader().getResource(AUDIO_COVER_SOURCE_NAME);
         File file = Paths.get(res.toURI()).toFile();
         String absolutePathInput = file.getAbsolutePath();
@@ -200,14 +208,188 @@ class ResizerAppTest {
         ResizerApp app = new ResizerApp();
         app.setInputFile(new File(absolutePathInput));
         app.setOutputFile(new File(absolutePathOutput));
-        app.setQuality(-50);
+        app.setQuality(quality);
+        checkBadAttributesException(app);
+    }
+
+    @Test
+    public void testBadBlurAttributes() throws Exception {
+        URL res = getClass().getClassLoader().getResource(AUDIO_COVER_SOURCE_NAME);
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(AUDIO_COVER_SOURCE_NAME, AUDIO_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setBlurRadius(-1);
+        checkBadAttributesException(app);
+    }
+
+    @Test
+    public void testBadOutputFileFormatAttributes() throws Exception {
+        URL res = getClass().getClassLoader().getResource(AUDIO_COVER_SOURCE_NAME);
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(AUDIO_COVER_SOURCE_NAME, AUDIO_COVER_TARGET_NAME);
+        String randomFileFormat = UUID.randomUUID().toString();
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setOutputFileFormat(randomFileFormat);
+        checkBadAttributesException(app);
+    }
+
+    @Test
+    public void testBadResizeWidthAttributes() throws Exception {
+        URL res = getClass().getClassLoader().getResource(AUDIO_COVER_SOURCE_NAME);
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(AUDIO_COVER_SOURCE_NAME, AUDIO_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setResizeWidth(-1);
+        app.setResizeHeight(1);
+        checkBadAttributesException(app);
+    }
+
+
+    @Test
+    public void testBadResizeHeightAttributes() throws Exception {
+        URL res = getClass().getClassLoader().getResource(AUDIO_COVER_SOURCE_NAME);
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(AUDIO_COVER_SOURCE_NAME, AUDIO_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setResizeWidth(1);
+        app.setResizeHeight(-1);
+        checkBadAttributesException(app);
+    }
+
+    @Test
+    public void testBadCropWidthAttributes() throws Exception {
+        URL res = getClass().getClassLoader().getResource(AUDIO_COVER_SOURCE_NAME);
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(AUDIO_COVER_SOURCE_NAME, AUDIO_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setCropWidth(-1);
+        app.setCropHeight(1);
+        checkBadAttributesException(app);
+    }
+
+    @Test
+    public void testBadCropHeightAttributes() throws Exception {
+        URL res = getClass().getClassLoader().getResource(AUDIO_COVER_SOURCE_NAME);
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(AUDIO_COVER_SOURCE_NAME, AUDIO_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setCropHeight(-1);
+        app.setCropWidth(1);
+        checkBadAttributesException(app);
+    }
+
+    /*
+            Тесты ниже не проверяет работоспособность утилиты на 100%. Выше упоминалось, что тестирование изображений -
+        сложная комплексная задача, и мне кажется (могу ощабитсья), что это вне скоупа данного тестового задания. Тесты ниже
+        нужны лишь для проверки изменения разрешения изображения в случае testCropCover и для проверки успешности завершения
+        работы в случае применения всех операций.
+    */
+    @Test
+    public void testCropCover() throws Exception {
+        final Integer reducedPreviewWidth = FILM_COVER_WIDTH - 500;
+        final Integer reducedPreviewHeight = FILM_COVER_HEIGHT - 500;
+        final Integer reducedPreviewX = 100;
+        final Integer reducedPreviewY = 100;
+
+        URL res = getClass().getClassLoader().getResource(FILM_COVER_SOURCE_NAME);
+        assert res != null;
+
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(FILM_COVER_SOURCE_NAME, FILM_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setCropWidth(reducedPreviewWidth);
+        app.setCropHeight(reducedPreviewHeight);
+        app.setX(reducedPreviewX);
+        app.setY(reducedPreviewY);
+        app.call();
+
+        BufferedImage reducedPreview = ImageIO.read(new File(absolutePathOutput));
+
+        assertEquals(reducedPreview.getWidth(), reducedPreviewWidth);
+        assertEquals(reducedPreview.getHeight(), reducedPreviewHeight);
+    }
+
+    @Test
+    public void testSuccessfullyCompletedWithAllOperations() throws Exception {
+        final Integer reducedPreviewResizeWidth = 100;
+        final Integer reducedPreviewResizeHeight = 100;
+        final Integer reducedPreviewCropWidth = FILM_COVER_WIDTH - 500;
+        final Integer reducedPreviewCropHeight = FILM_COVER_HEIGHT - 500;
+        final Integer reducedPreviewX = 100;
+        final Integer reducedPreviewY = 100;
+
+        URL res = getClass().getClassLoader().getResource(FILM_COVER_SOURCE_NAME);
+        assert res != null;
+
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(FILM_COVER_SOURCE_NAME, FILM_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setCropWidth(reducedPreviewCropWidth);
+        app.setCropHeight(reducedPreviewCropHeight);
+        app.setX(reducedPreviewX);
+        app.setY(reducedPreviewY);
+        app.setResizeWidth(reducedPreviewResizeWidth);
+        app.setResizeHeight(reducedPreviewResizeHeight);
+        app.setQuality(100);
+        app.setBlurRadius(10);
+        app.setOutputFileFormat("PNG");
+        Integer exitCode = app.call();
+
+        File outputFile = new File(absolutePathOutput);
+        BufferedImage reducedPreview = ImageIO.read(outputFile);
+
+        assertEquals(0, exitCode);
+        assertEquals(reducedPreview.getWidth(), reducedPreviewResizeWidth);
+        assertEquals(reducedPreview.getHeight(), reducedPreviewResizeHeight);
+    }
+
+    private void checkBadAttributesException(ResizerApp app) throws Exception {
         BadAttributesException generatedException = null;
         try {
             app.call();
         } catch (BadAttributesException e) {
             generatedException = e;
         }
-
         assertEquals("Please check params!", generatedException.getMessage());
         assertEquals(BadAttributesException.class, generatedException.getClass());
     }

@@ -1,5 +1,11 @@
 package mts.teta.resizer.console;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import mts.teta.resizer.operations.Operations;
 import mts.teta.resizer.exceptions.BadAttributesException;
 import mts.teta.resizer.validation.AttributesValidator;
 import mts.teta.resizer.validation.implementations.ImageProcessorAttributesValidator;
@@ -42,10 +48,10 @@ public class ConsoleAttributes {
     protected String outputFileFormat;
 
     @CommandLine.Parameters(index = "0")
-    protected String inputFilePath;
+    protected File inputFile;
 
     @CommandLine.Parameters(index = "1")
-    protected String outputFilePath;
+    protected File outputFile;
 
     protected Integer resizeHeight;
     protected Integer resizeWidth;
@@ -55,13 +61,13 @@ public class ConsoleAttributes {
     protected Integer x;
     protected Integer y;
 
-    protected File inputFile;
-    protected File outputFile;
+    protected Set<Operations> operations = new HashSet<>();
 
-    protected void initialize() throws BadAttributesException {
+    protected void initialize() {
         if (resizeValues != null) {
             resizeWidth = resizeValues[0];
             resizeHeight = resizeValues[1];
+            operations.add(Operations.RESIZE);
         }
 
         if (cropValues != null) {
@@ -69,13 +75,20 @@ public class ConsoleAttributes {
             cropHeight = cropValues[1];
             x = cropValues[2];
             y = cropValues[3];
+            operations.add(Operations.CROP);
         }
 
-        AttributesValidator validator = new ImageProcessorAttributesValidator();
-        validator.validate(this);
+        if (quality != null) {
+            operations.add(Operations.QUALITY);
+        }
 
-        inputFile = new File(inputFilePath);
-        outputFile = new File(outputFilePath);
+        if (blurRadius != null) {
+            operations.add(Operations.BLUR);
+        }
+
+        if (outputFileFormat != null) {
+            operations.add(Operations.OUTPUT_FILE_FORMAT);
+        }
     }
 
     public Integer getQuality() {
@@ -84,6 +97,7 @@ public class ConsoleAttributes {
 
     public void setQuality(Integer quality) {
         this.quality = quality;
+        operations.add(Operations.QUALITY);
     }
 
     public Integer getBlurRadius() {
@@ -92,6 +106,7 @@ public class ConsoleAttributes {
 
     public void setBlurRadius(Integer blurRadius) {
         this.blurRadius = blurRadius;
+        operations.add(Operations.BLUR);
     }
 
     public String getOutputFileFormat() {
@@ -100,22 +115,7 @@ public class ConsoleAttributes {
 
     public void setOutputFileFormat(String outputFileFormat) {
         this.outputFileFormat = outputFileFormat;
-    }
-
-    public String getInputFilePath() {
-        return inputFilePath;
-    }
-
-    public void setInputFilePath(String inputFilePath) {
-        this.inputFilePath = inputFilePath;
-    }
-
-    public String getOutputFilePath() {
-        return outputFilePath;
-    }
-
-    public void setOutputFilePath(String outputFilePath) {
-        this.outputFilePath = outputFilePath;
+        operations.add(Operations.OUTPUT_FILE_FORMAT);
     }
 
     public Integer getResizeHeight() {
@@ -124,6 +124,7 @@ public class ConsoleAttributes {
 
     public void setResizeHeight(Integer resizeHeight) {
         this.resizeHeight = resizeHeight;
+        operations.add(Operations.RESIZE);
     }
 
     public Integer getResizeWidth() {
@@ -132,6 +133,7 @@ public class ConsoleAttributes {
 
     public void setResizeWidth(Integer resizeWidth) {
         this.resizeWidth = resizeWidth;
+        operations.add(Operations.RESIZE);
     }
 
     public Integer getCropHeight() {
@@ -140,6 +142,7 @@ public class ConsoleAttributes {
 
     public void setCropHeight(Integer cropHeight) {
         this.cropHeight = cropHeight;
+        operations.add(Operations.CROP);
     }
 
     public Integer getCropWidth() {
@@ -148,6 +151,7 @@ public class ConsoleAttributes {
 
     public void setCropWidth(Integer cropWidth) {
         this.cropWidth = cropWidth;
+        operations.add(Operations.CROP);
     }
 
     public Integer getX() {
@@ -156,6 +160,7 @@ public class ConsoleAttributes {
 
     public void setX(Integer x) {
         this.x = x;
+        operations.add(Operations.CROP);
     }
 
     public Integer getY() {
@@ -164,6 +169,7 @@ public class ConsoleAttributes {
 
     public void setY(Integer y) {
         this.y = y;
+        operations.add(Operations.CROP);
     }
 
     public File getInputFile() {
@@ -182,19 +188,11 @@ public class ConsoleAttributes {
         this.outputFile = outputFile;
     }
 
-    public Integer[] getResizeValues() {
-        return resizeValues;
+    public Set<Operations> getOperations() {
+        return operations;
     }
 
-    public void setResizeValues(Integer[] resizeValues) {
-        this.resizeValues = resizeValues;
-    }
-
-    public Integer[] getCropValues() {
-        return cropValues;
-    }
-
-    public void setCropValues(Integer[] cropValues) {
-        this.cropValues = cropValues;
+    public void setOperations(Set<Operations> operations) {
+        this.operations = operations;
     }
 }
